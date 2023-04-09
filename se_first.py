@@ -10,7 +10,12 @@ class TheoryMarks:
         self.marks = 0
 
     def set_marks(self, marks: str):
-        self.marks = int(marks)
+        if(marks == "FF"):
+            self.marks = "F"
+        elif "$" in marks:
+            self.marks = marks.split("$")[0]
+        else:
+            self.marks = marks
 
     def print(self) -> int:
         return self.marks
@@ -37,29 +42,75 @@ class LabMarks:
 
     def ret_data(self) -> list[str]:
         marks_list = []
-        if self.TW_marks != "---":
-            self.TW_marks = self.TW_marks.split("/")[0]
-            marks_list.append(int(self.TW_marks))
+        if self.TW_marks != "---" and "AB" not in self.TW_marks and "$" not in self.TW_marks and "#" not in self.TW_marks :
+            # print(self.TW_marks)
+            # print(int(self.TW_marks.split("/")[1]))
+            if(int(self.TW_marks.split("/")[1]) == 50):
+          
+                self.TW_marks = self.TW_marks.split("/")[0]
+                marks_list.append(int(self.TW_marks)*2)
+            elif (int(self.TW_marks.split("/")[1]) == 25):
+               
+                self.TW_marks = self.TW_marks.split("/")[0]
+                marks_list.append(int(self.TW_marks)*4)
+            else: 
+                # case for /100 
+                # print(int(self.TW_marks.split("/")[0]))
+                marks_list.append(int(self.TW_marks.split("/")[0]))
+        elif "AB" in self.TW_marks :
+            marks_list.append("AB")
+        elif "$" in self.TW_marks :
+            marks_list.append(int(self.TW_marks.split("$")[0]))
+        elif "#" in self.TW_marks:
+            marks_list.append(int(self.TW_marks.split("#")[0]))
         else:
             marks_list.append("NA")
-        if self.PR_marks != "---":
-            self.PR_marks = self.PR_marks.split("/")[0]
-            marks_list.append(int(self.PR_marks))
+        
+        if self.PR_marks != "---" and "AB" not in self.PR_marks and "$" not in self.PR_marks and "#" not in self.PR_marks  :
+              if(int(self.PR_marks.split("/")[1]) == 50):
+             
+                self.PR_marks = self.PR_marks.split("/")[0]
+                marks_list.append(int(self.PR_marks)*2)
+              elif (int(self.PR_marks.split("/")[1]) == 25):
+               
+                self.PR_marks = self.PR_marks.split("/")[0]
+                marks_list.append(int(self.PR_marks)*4)
+        elif  "AB" in self.PR_marks:
+            marks_list.append("AB")
+        elif "$" in self.PR_marks :
+            marks_list.append(int(self.PR_marks.split("$")[0]))
+        elif "#" in self.PR_marks:
+            marks_list.append(int(self.PR_marks.split("#")[0]))
         else:
             marks_list.append("NA")
-        if self.OR_marks != "---":
-            self.OR_marks = self.OR_marks.split("/")[0]
-            marks_list.append(int(self.OR_marks))
+        
+        if self.OR_marks != "---" and  "AB" not in self.OR_marks and "$" not in self.OR_marks and "#" not in self.OR_marks:
+            if(int(self.OR_marks.split("/")[1]) == 50):
+             
+                self.OR_marks = self.OR_marks.split("/")[0]
+                marks_list.append(int(self.OR_marks)*2)
+            elif (int(self.OR_marks.split("/")[1]) == 25):
+                self.OR_marks = self.OR_marks.split("/")[0]
+                marks_list.append(int(self.OR_marks)*4)
+        elif "AB"  in self.OR_marks:
+            marks_list.append("AB")
+        elif "$" in self.OR_marks :
+            
+            marks_list.append(int(self.OR_marks.split("$")[0]))
+        elif "#" in self.OR_marks:
+            marks_list.append(int(self.OR_marks.split("#")[0]))
         else:
             marks_list.append("NA")
-        marks_list.append(int(self.Total_marks))
+        marks_list.append(self.Total_marks)
+
         return marks_list
+
 
 
 class CSVWriter:
     def __init__(self, csv_path: str):
         self.csv_path = csv_path
-        self.csv_file = open(self.csv_path, "w")
+        self.csv_file = open(self.csv_path, "w",newline="")
         self.csv_writer = csv.writer(self.csv_file)
         self.csv_writer.writerow(
             [
@@ -85,6 +136,7 @@ class CSVWriter:
                 "HUMANITY ",
                 "& SOCIAL",
                 " SCIENCE",
+                  "SGPA",
             ]
         )
         self.csv_writer.writerow(
@@ -111,6 +163,7 @@ class CSVWriter:
                 "TW",
                 "PR",
                 "OR",
+               
             ]
         )  # Header of the csv file
 
@@ -135,6 +188,7 @@ class Student:
         self.lab_marks_sub3 = LabMarks()
         self.lab_marks_sub4 = LabMarks()
         self.lab_marks_sub5 = LabMarks()
+        self.SGPA = 0
 
     def tolist(self) -> list[str, int]:
         lab1 = self.lab_marks_sub1.ret_data()
@@ -165,6 +219,8 @@ class Student:
             lab5[0],
             lab5[1],
             lab5[2],
+            self.SGPA
+            
         ]
 
     def clear(self):
@@ -180,20 +236,20 @@ class Student:
         self.lab_marks_sub3 = LabMarks()
         self.lab_marks_sub4 = LabMarks()
         self.lab_marks_sub5 = LabMarks()
+        self.SGPA = 0
 
 
 class SmartParse:
     object_counter: int = 0
     counter: int = -1
     student: Student = Student()
-    csv_writer: CSVWriter = CSVWriter("marks.csv")
+    csv_writer: CSVWriter = CSVWriter("generated/SE_2023_MARKS.csv")
 
     def ordered_parse(self, parse_line: str):
         if (
             "CONFIDENTIAL" in text_line.get_text()
             or "COURSE" in text_line.get_text()
             or "SEM" in text_line.get_text()
-            or "SGPA" in text_line.get_text()
             or "210251" in text_line.get_text()
         ):  # avoiding unwanted lines.
             return
@@ -219,7 +275,10 @@ class SmartParse:
             return
 
         if self.counter < 5 and self.counter > -1:
-
+            if("*" not in parse_line):
+                print("2 SEMS in one SEM detected,skipping line" )
+                exit(0)
+                return 
             con_str = parse_line.split("*")[1]
             total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[6].split("   ")[
                 0
@@ -227,26 +286,33 @@ class SmartParse:
 
             order_dict[self.counter].set_marks(total_marks)
             SmartParse.counter += 1
+
+        elif "SGPA1" in parse_line:
+            self.student.SGPA = parse_line.split(":")[1].split(",")[0]
+            SmartParse.csv_writer.writeStudent(
+                self.student
+            )  # writing the student to the csv file.
+            SmartParse.counter = -1  # resetting the counter.
+            SmartParse.object_counter += 1  # increasing the object counter.
+            print(f"{self.object_counter,self.student.full_name,self.student.SGPA} objects written")
+            SmartParse.student.clear()  # clearing the student object.
+
         else:
+            print(self.counter)
+            if("*" not in parse_line):
+                print("2 SEMS in one SEM detected,skipping line = lab" )
+                SmartParse.counter += 1
+                return
             con_str = parse_line.split("*")[1]
             data = list(
                 map("".join, zip(*[iter(con_str)] * 9))
             )  # splitting the line after * in 9 parts.
             order_dict[self.counter].set_data(data)
             SmartParse.counter += 1
-        if (
-            self.counter == 10
-        ):  # if the counter is 10, it means that the line is the last line of the student.
-            SmartParse.csv_writer.writeStudent(
-                self.student
-            )  # writing the student to the csv file.
-            SmartParse.counter = -1  # resetting the counter.
-            SmartParse.object_counter += 1  # increasing the object counter.
-            print(f"{self.object_counter} objects written")
-            SmartParse.student.clear()  # clearing the student object.
 
 
-for page_layout in extract_pages("se_1.pdf"):
+
+for page_layout in extract_pages("inputs/SE_2023.pdf"):
     for element in page_layout:
         if isinstance(element, (LTTextBoxHorizontal)):
             if "PUNE" in element.get_text():
@@ -260,5 +326,5 @@ xl = pd.ExcelWriter(
     engine="xlsxwriter",
     engine_kwargs={"options": {"strings_to_numbers": True}},
 )
-pd.read_csv("marks.csv").to_excel(xl, index=False)
+pd.read_csv("generated/SE_2023_MARKS.csv").to_excel(xl, index=False)
 xl.save()
