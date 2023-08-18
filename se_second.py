@@ -5,16 +5,20 @@ import csv
 from pdfminer.high_level import extract_pages
 
 
-
 class TheoryMarks:
     def __init__(self):
-        self.marks = "0"
+        self.marks = "NA"
 
     def set_marks(self, marks: str):
         if(marks == "FF"):
             self.marks = "F"
+        elif "$" in marks:
+            self.marks = marks.split("$")[0]
         else:
-            self.marks = marks
+            if("/" in marks):
+                self.marks = marks.split("/")[0]
+            else:
+                self.marks = marks
 
     def print(self) -> str:
         return self.marks
@@ -38,11 +42,12 @@ class LabMarks:
         self.PR_marks = data[4].strip()
         self.OR_marks = data[5].strip()
         self.Total_marks = data[6].split("   ")[0].strip()
-
+        
     def ret_data(self) -> list[str]:
+        # print(f"{self.TW_marks} >  {self.PR_marks} > {self.OR_marks} > {self.Total_marks}")
         marks_list = []
-        if self.TW_marks != "---":
-            # print(self.TW_marks)
+        if self.TW_marks != "---" and "AB" not in self.TW_marks and "$" not in self.TW_marks :
+            
             # print(int(self.TW_marks.split("/")[1]))
             if(int(self.TW_marks.split("/")[1]) == 50):
           
@@ -52,15 +57,19 @@ class LabMarks:
                
                 self.TW_marks = self.TW_marks.split("/")[0]
                 marks_list.append(int(self.TW_marks)*4)
+            else: 
+                # case for /100 
+
+                marks_list.append(int(self.TW_marks.split("/")[0]))
+        elif "AB" in self.TW_marks :
+            marks_list.append("AB")
+        elif "$" in self.TW_marks :
+            marks_list.append(int(self.TW_marks.split("$")[0]))
         else:
             marks_list.append("NA")
-        if self.PR_marks != "---":
-            #   print(self.PR_marks.split("/")[1])
-              if(self.PR_marks =="10$/025"):
-                self.PR_marks = 10
-                marks_list.append(40) 
-                #this above case exists solely because of an inconsistency in the ledger pdf, where the marks for the practicals are written as 10$ instead of 10/25
-              elif(int(self.PR_marks.split("/")[1]) == 50):
+        
+        if self.PR_marks != "---" and "AB" not in self.PR_marks and "$" not in self.PR_marks  :
+              if(int(self.PR_marks.split("/")[1]) == 50):
              
                 self.PR_marks = self.PR_marks.split("/")[0]
                 marks_list.append(int(self.PR_marks)*2)
@@ -68,9 +77,14 @@ class LabMarks:
                
                 self.PR_marks = self.PR_marks.split("/")[0]
                 marks_list.append(int(self.PR_marks)*4)
+        elif  "AB" in self.PR_marks:
+            marks_list.append("AB")
+        elif "$" in self.PR_marks :
+            marks_list.append(int(self.PR_marks.split("$")[0]))
         else:
             marks_list.append("NA")
-        if self.OR_marks != "---":
+        
+        if self.OR_marks != "---" and  "AB" not in self.OR_marks and "$" not in self.OR_marks :
             if(int(self.OR_marks.split("/")[1]) == 50):
              
                 self.OR_marks = self.OR_marks.split("/")[0]
@@ -78,12 +92,19 @@ class LabMarks:
             elif (int(self.OR_marks.split("/")[1]) == 25):
                 self.OR_marks = self.OR_marks.split("/")[0]
                 marks_list.append(int(self.OR_marks)*4)
+        elif "AB"  in self.OR_marks:
+            marks_list.append("AB")
+        elif "$" in self.OR_marks :
+            
+            marks_list.append(int(self.OR_marks.split("$")[0]))
         else:
             marks_list.append("NA")
         marks_list.append(self.Total_marks)
+      
         return marks_list
     def print(self) -> int:
-        return self.TW_marks
+        return self.Total_marks
+
 
 class CSVWriter:
     def __init__(self, csv_path: str):
@@ -181,7 +202,7 @@ class SmartParse:
     object_counter: int = 0
     counter: int = 0
     student: Student = Student()
-    csv_writer: CSVWriter = CSVWriter("marks.csv")
+    csv_writer: CSVWriter = CSVWriter("SE_2023_marks_new.csv")
     def parse_boxes(self , name_box:LTTextBoxHorizontal,marks_box:LTTextBoxHorizontal):
         try:
             for name in name_box:            
@@ -209,17 +230,24 @@ class SmartParse:
             "CONFIDENTIAL" in text_line.get_text()
             or "COURSE" in text_line.get_text()
             or "SEM" in text_line.get_text()
-            or "210260A" in text_line.get_text()
-            or "210260B" in text_line.get_text()
+            or "210260" in text_line.get_text()
         ):  # avoiding unwanted lines.
                 continue
             parse_line = text_line.get_text()
-            
+
             if self.counter in [0,2,3,4,5]:
-                con_str = parse_line.split("*")[1]
-                total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[6].split("   ")[
-                    0
-                ]  # splitting the line after * in 9 parts.
+                if "*" not in parse_line:
+                    con_str = text_line.split("      ")[1]
+                    print(con_str)
+                  
+                    
+
+                else:
+                    con_str = parse_line.split("*")[1]
+                    
+                total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
+                        0
+                    ] # splitting the line after * in 9 parts.
                 
 
                 order_dict[self.counter].set_marks(total_marks.strip())
@@ -236,12 +264,15 @@ class SmartParse:
                 self.student.clear()
                 SmartParse.counter = 0
             else:
-                con_str = parse_line.split("*")[1]
-                data = list(
-                    map("".join, zip(*[iter(con_str)] * 9))
-                )  # splitting the line after * in 9 parts.
-                order_dict[self.counter].set_data(data)
-                SmartParse.counter += 1
+                if "*" not in parse_line:
+                    pass
+                else:
+                    con_str = parse_line.split("*")[1]
+                    data = list(
+                        map("".join, zip(*[iter(con_str)] * 9))
+                    )  # splitting the line after * in 9 parts.
+                    order_dict[self.counter].set_data(data)
+                    SmartParse.counter += 1
      
 
    
@@ -251,7 +282,7 @@ def getLTBoxCount(obj) -> int:
         if(isinstance(element, LTTextBoxHorizontal)):
             count += 1
     return count 
-for page_layout in extract_pages("se.pdf"):
+for page_layout in extract_pages("inputs/SE_2023_new.pdf"):
   
     if getLTBoxCount(page_layout) == 5: 
         SmartParse().parse_boxes(page_layout._objs[1],page_layout._objs[2])
@@ -262,14 +293,14 @@ for page_layout in extract_pages("se.pdf"):
         print("End")
         break 
         
-try:
-    xl = pd.ExcelWriter(
-        "se_marks.xlsx",
-        engine="xlsxwriter",
-        engine_kwargs={"options": {"strings_to_numbers": True}},
-    )
-    df = pd.read_csv("marks.csv")
-    df.to_excel(xl ,index = False,na_rep = "NOF")
-    xl.save()
-except Exception as e:
-    print(e)
+# try:
+#     xl = pd.ExcelWriter(
+#         "se_marks.xlsx",
+#         engine="xlsxwriter",
+#         engine_kwargs={"options": {"strings_to_numbers": True}},
+#     )
+#     df = pd.read_csv("marks.csv")
+#     df.to_excel(xl ,index = False,na_rep = "NOF")
+#     xl.save()
+# except Exception as e:
+#     print(e)
