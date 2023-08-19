@@ -14,10 +14,14 @@ class TheoryMarks:
             self.marks = "F"
         elif "$" in marks:
             self.marks = marks.split("$")[0]
+        elif "#" in marks: 
+            self.marks = marks.split("#")[0]
         else:
             if("/" in marks):
                 self.marks = marks.split("/")[0]
+                self.marks = self.marks[1:] # remove the first 0
             else:
+                #almost never occurs
                 self.marks = marks
 
     def print(self) -> str:
@@ -120,14 +124,34 @@ class CSVWriter:
                 "SE",
                 "MP",
                 "PPL",
-                "EM3 TW",
-                "DSAL TW",
-                "DSAL PR",
-                "MPL TW",
-                "MPL OR",
-                "PBL2 TW",
-                "COC TW",
+                "EM3 LAB",
+                "Data Structures",
+                "and Algorithms Lab",
+                "Microprocessor ",
+                "lab",
+                "PBL2",
+                "COC",
                 "SGPA",
+               
+            ]
+        )
+        self.csv_writer.writerow(
+            [
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "",
+                "TW",
+                "TW",
+                "PR",
+                "TW",
+                "OR",
+                "TW",
+                "TW",
+                "",
                
             ]
         )
@@ -236,26 +260,23 @@ class SmartParse:
             parse_line = text_line.get_text()
 
             if self.counter in [0,2,3,4,5]:
-                if "*" not in parse_line:
-                    con_str = text_line.split("      ")[1]
-                    print(con_str)
-                  
-                    
-
+                if "*" not in parse_line:    
+                    index = parse_line.find("/")
+                    index-=3
+                   
+                    con_str = parse_line[index:]
+                
                 else:
                     con_str = parse_line.split("*")[1]
-                    
+                   
                 total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
                         0
                     ] # splitting the line after * in 9 parts.
                 
-
                 order_dict[self.counter].set_marks(total_marks.strip())
                 SmartParse.counter += 1
             elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]
-                #print(self.student)
- 
                 SmartParse.csv_writer.writeStudent(
                     self.student
                     ) 
@@ -265,14 +286,21 @@ class SmartParse:
                 SmartParse.counter = 0
             else:
                 if "*" not in parse_line:
-                    pass
+                    # find the first --- in the string 
+                    index = parse_line.find("---")
+                    
+                    con_str = "   "+ parse_line[index:]
+                    
+                 
                 else:
                     con_str = parse_line.split("*")[1]
-                    data = list(
-                        map("".join, zip(*[iter(con_str)] * 9))
-                    )  # splitting the line after * in 9 parts.
-                    order_dict[self.counter].set_data(data)
-                    SmartParse.counter += 1
+                    
+                data = list(
+                    map("".join, zip(*[iter(con_str)] * 9))
+                )  # splitting the line after * in 9 parts.
+                
+                order_dict[self.counter].set_data(data)
+                SmartParse.counter += 1
      
 
    

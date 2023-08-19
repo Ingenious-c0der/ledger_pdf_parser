@@ -18,7 +18,9 @@ class TheoryMarks:
         else:
             if("/" in marks):
                 self.marks = marks.split("/")[0]
+                self.marks = self.marks[1:] # remove the first 0
             else:
+                #almost never occurs
                 self.marks = marks
 
     def print(self) -> str:
@@ -222,7 +224,7 @@ class SmartParse:
     object_counter: int = 0
     counter: int = 0
     student: Student = Student()
-    csv_writer: CSVWriter = CSVWriter("te_2023_new.csv")
+    csv_writer: CSVWriter = CSVWriter("te_2023_new_fixed.csv")
     def parse_boxes(self , name_box:LTTextBoxHorizontal,marks_box:LTTextBoxHorizontal):
         try:
             for name in name_box:            
@@ -261,17 +263,20 @@ class SmartParse:
             parse_line = text_line.get_text()
 
             if self.counter in [0,1,2,3]: #for theory marks
-                try:
-                    con_str = parse_line.split("*")[1]
+                if "*" not in parse_line:
+                    index = parse_line.find("/")
+                    index-=3
+                    con_str = parse_line[index:]
                     total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
                         0
                     ] # splitting the line after * in 9 parts.
                     
                     if(self.counter == 3): 
-                        sub_code = parse_line.split("*")[0].split(" ")[3]
-                        if "A" in sub_code:
+                        
+                        print("here")
+                        if "310254C" in parse_line:
                             order_dict[self.counter].set_marks(total_marks.strip())
-                        elif "B" in sub_code:
+                        elif "310254A" in parse_line:
                             order_dict[self.counter+1].set_marks(total_marks.strip())
                         else:
                             order_dict[self.counter+2].set_marks(total_marks.strip())
@@ -279,14 +284,25 @@ class SmartParse:
                     else:
                         order_dict[self.counter].set_marks(total_marks.strip())
                         SmartParse.counter += 1
-                except Exception as e:
-                    print(e)
-                    print(f"Could not split with * for this object {self.object_counter} name : {self.student.full_name} skipping object")
+                else:
+                    con_str = parse_line.split("*")[1]
+                    total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
+                        0
+                    ] # splitting the line after * in 9 parts.
+                    
                     if(self.counter == 3): 
+                        sub_code = parse_line.split("*")[0].split(" ")[3]
+                        if "C" in sub_code:
+                            order_dict[self.counter].set_marks(total_marks.strip())
+                        elif "A" in sub_code:
+                            order_dict[self.counter+1].set_marks(total_marks.strip())
+                        else:
+                            order_dict[self.counter+2].set_marks(total_marks.strip())
                         self.counter= 6
                     else:
-                        order_dict[self.counter].set_marks("-1/100")
+                        order_dict[self.counter].set_marks(total_marks.strip())
                         SmartParse.counter += 1
+                
             elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]
                 #print(self.student)
@@ -300,18 +316,14 @@ class SmartParse:
                 SmartParse.counter = 0
             else:
                 # for labs
-                try:
-                   
+                if "*" not in parse_line:
+                    index = parse_line.find("---")
+                    con_str = "   "+ parse_line[index:]
+                else:
                     con_str = parse_line.split("*")[1]
-                    
-                    data = list(
+                data = list(
                         map("".join, zip(*[iter(con_str)] * 9))
                     )  # splitting the line after * in 9 parts.
-              
-                except Exception as e:
-                    print(e)
-                    print(f"Could not split with * for this object {self.object_counter} name : {self.student.full_name} skipping object")
-                    data = ['---', '---', '---', '---', '---', '---', '---', '---', '---', '---']
                 order_dict[self.counter].set_data(data)
                 self.counter+=1
                 SmartParse.counter += 1
