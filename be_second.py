@@ -6,6 +6,9 @@ from pdfminer.high_level import extract_pages
 
 
 
+INPUT  = "inputs/BE_2023_new.pdf"
+OUTPUT = "generated/be_new_marks_2023.csv"
+
 class TheoryMarks:
     def __init__(self):
         self.marks = "NA"
@@ -129,7 +132,11 @@ class CSVWriter:
                 "LABORATORY PRACTICE VI",
                 "PROJECT",
                 "STAGE II",
-                "SGPA"
+                "FE SGPA",
+                "SE SGPA",
+                "TE SGPA",
+                "BE SGPA",
+                "CGPA",
             ]
         )
         self.csv_writer.writerow(
@@ -192,7 +199,11 @@ class Student:
             lab2[0],
             lab3[0],
             lab3[2],
-            self.SGPA,
+            self.FE_SGPA,
+            self.SE_SGPA,
+            self.TE_SGPA,
+            self.BE_SGPA,
+            self.CGPA,
         ]
 
     def clear(self):
@@ -207,6 +218,12 @@ class Student:
         self.lab_marks_sub1 = LabMarks()
         self.lab_marks_sub2 = LabMarks()
         self.lab_marks_sub3 = LabMarks()
+        self.CGPA = 0
+        self.FE_SGPA = 0
+        self.SE_SGPA = 0
+        self.TE_SGPA = 0
+        self.BE_SGPA = 0
+
 
     def __str__(self) -> str:
         return f"{self.full_name} {self.seat_no} {self.theory_marks_sub1.print()} {self.theory_marks_sub2.print()} {self.theory_marks_sub3.print()} {self.theory_marks_sub4.print()} {self.theory_marks_sub5.print()} {self.theory_marks_sub6.print()} {self.lab_marks_sub1.ret_data()} {self.lab_marks_sub2.ret_data()} {self.lab_marks_sub3.ret_data()}  {self.SGPA} \n"
@@ -215,8 +232,9 @@ class Student:
 class SmartParse:
     object_counter: int = 0
     counter: int = 0
+    sgpa_parsed: bool = False
     student: Student = Student()
-    csv_writer: CSVWriter = CSVWriter("generated/be_new_marks.csv")
+    csv_writer: CSVWriter = CSVWriter(OUTPUT)
     def parse_boxes(self , name_box:LTTextBoxHorizontal,marks_box:LTTextBoxHorizontal):
         try:
             for name in name_box:            
@@ -243,7 +261,6 @@ class SmartParse:
             "CONFIDENTIAL" in text_line.get_text()
             or "COURSE" in text_line.get_text()
             or "CGPA" in text_line.get_text()
-            or "FE SGPA" in text_line.get_text()
             or "SEM" in text_line.get_text()
             or "410257" in text_line.get_text() 
             or "410503" in text_line.get_text() # honors ML,DS
@@ -285,17 +302,48 @@ class SmartParse:
                 if(self.counter == 4):
                     self.counter = 6
             elif "SGPA" in parse_line:
-                self.student.SGPA = parse_line.split(":")[1].split(",")[0]
-                SmartParse.csv_writer.writeStudent(
-                    self.student
-                    ) 
-                SmartParse.object_counter += 1 
-                print(f"{self.object_counter} objects written - {self.student.full_name}")
-                self.student.clear()
-                self.counter = 0
+                
+                if (self.sgpa_parsed):
+                    SGPA_parse_array_line = parse_line.split(":") 
+                    
+                    self.student.FE_SGPA = SGPA_parse_array_line[1].split("   ")[0].strip()
+                    self.student.SE_SGPA = SGPA_parse_array_line[2].split("   ")[0].strip()
+                    self.student.TE_SGPA = SGPA_parse_array_line[2].split("   ")[0].strip()
+                    SGPA_array = list(map(float,[self.student.FE_SGPA,self.student.SE_SGPA,self.student.TE_SGPA,self.student.BE_SGPA]))
+                    print(SGPA_array)
+                    # max till 2 decimal places
+                    self.student.CGPA = round(sum(SGPA_array)/4,2)
+                    SmartParse.csv_writer.writeStudent(
+                        self.student
+                        ) 
+                    SmartParse.object_counter += 1 
+                    print(f"{self.object_counter} objects written - {self.student.full_name}")
+                    self.student.clear()
+                    self.counter = 0
+                    self.sgpa_parsed = False
+                else: 
+                    self.student.BE_SGPA = parse_line.split(":")[1].split(",")[0].strip()
+                    if(self.student.BE_SGPA == "--"):
+                        print("Student has failed in BE")
+                        self.student.FE_SGPA = "NA"
+                        self.student.SE_SGPA = "NA"
+                        self.student.TE_SGPA = "NA"
+                        self.student.CGPA = "--"
+                        SmartParse.csv_writer.writeStudent(
+                        self.student
+                        ) 
+                        SmartParse.object_counter += 1 
+                        print(f"{self.object_counter} objects written - {self.student.full_name}")
+                        self.student.clear()
+                        self.counter = 0
+                        self.sgpa_parsed = False
+                    else:                    
+                        self.student.BE_SGPA = float(self.student.BE_SGPA)
+                        self.sgpa_parsed = True
+
             else:
                 # for labs
-
+                
                 con_str = parse_line.split("*")[1]
                 data = list(
                     map("".join, zip(*[iter(con_str)] * 9))
@@ -315,8 +363,7 @@ def getLTBoxCount(obj) -> int:
             count += 1
     return count 
 try:
-    for page_layout in extract_pages("inputs/be_new.pdf"):
-    
+    for page_layout in extract_pages(INPUT):
         if getLTBoxCount(page_layout) == 5: 
             SmartParse().parse_boxes(page_layout._objs[1],page_layout._objs[2])
             SmartParse().parse_boxes(page_layout._objs[3],page_layout._objs[4])
@@ -328,14 +375,14 @@ except Exception as e:
     print("Error : " + e)
             
         
-try:
-    xl = pd.ExcelWriter(
-        "generated/be_new_marks.xlsx",
-        engine="xlsxwriter",
-        engine_kwargs={"options": {"strings_to_numbers": True}},
-    )
-    df = pd.read_csv("generated/be_new_marks.csv")
-    df.to_excel(xl ,index = False,na_rep = "NOF")
-    xl.save()
-except Exception as e:
-    print(e)
+# try:
+#     xl = pd.ExcelWriter(
+#         "generated/be_new_marks.xlsx",
+#         engine="xlsxwriter",
+#         engine_kwargs={"options": {"strings_to_numbers": True}},
+#     )
+#     df = pd.read_csv(OUTPUT)
+#     df.to_excel(xl ,index = False,na_rep = "NOF")
+#     xl.save()
+# except Exception as e:
+#     print(e)
