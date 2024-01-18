@@ -272,8 +272,6 @@ class SmartParse:
                     ] # splitting the line after * in 9 parts.
                     
                     if(self.counter == 3): 
-                        
-                        print("here")
                         if "310254C" in parse_line:
                             order_dict[self.counter].set_marks(total_marks.strip())
                         elif "310254A" in parse_line:
