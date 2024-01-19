@@ -129,6 +129,7 @@ class CSVWriter:
                 "STAGE",
                 "I",
                 "SGPA",
+                "Credits"
             ]
         )
         self.csv_writer.writerow(
@@ -182,6 +183,7 @@ class Student:
         self.lab_marks_sub2 = LabMarks()
         self.lab_marks_sub3 = LabMarks()
         self.SGPA = 0
+        self.Credits = 0 
 
 
     def tolist(self) -> list[str, int]:
@@ -211,6 +213,7 @@ class Student:
             lab3[1],
             lab3[2],
             self.SGPA,
+            self.Credits
         ]
 
     def clear(self):
@@ -327,6 +330,9 @@ class SmartParse:
            
         elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]
+                self.student.Credits = parse_line.split(":")[-1].strip()
+                print(parse_line.split(":"))
+                print(self.student.Credits)
                 SmartParse.csv_writer.writeStudent(
                     self.student
                 )  # writing the student to the csv file.

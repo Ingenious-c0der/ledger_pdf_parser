@@ -113,6 +113,8 @@ class CSVWriter:
                 "THEORY OF COMPUTATION",
                 "SYSTEM PROGRAMMING AND OS ",
                 "COMPUTER NETWORKS AND SECURITY",
+                "INTERNET OF THINGS & EMBEDDED SYSTEMS",
+                "HUMAN COMPUTER INTERFACE",
                 "DISTRIBUTED SYSTEMS",
 
                 "SEMINAR AND",
@@ -132,10 +134,13 @@ class CSVWriter:
                 "AND SECURITY LAB",
 
                 "SGPA",
+                "Credits"
             ]
         )
         self.csv_writer.writerow(
             [
+                " ",
+                " ",
                 " ",
                 " ",
                 " ",
@@ -174,11 +179,14 @@ class Student:
         self.theory_marks_sub3 = TheoryMarks()
         self.theory_marks_sub4 = TheoryMarks()
         self.theory_marks_sub5 = TheoryMarks()
+        self.theory_marks_sub6 = TheoryMarks()
+        self.theory_marks_sub7 = TheoryMarks()
         self.lab_marks_sub1 = LabMarks()
         self.lab_marks_sub2 = LabMarks()
         self.lab_marks_sub3 = LabMarks()
         self.lab_marks_sub4  = LabMarks()
         self.SGPA = 0
+        self.credits = 0 
 
 
     def tolist(self) -> list[str, int]:
@@ -194,6 +202,8 @@ class Student:
             self.theory_marks_sub3.print(),
             self.theory_marks_sub4.print(),
             self.theory_marks_sub5.print(),
+            self.theory_marks_sub6.print(),
+            self.theory_marks_sub7.print(),
             lab1[0],
             lab1[1],
             lab1[2],
@@ -206,7 +216,8 @@ class Student:
             lab4[0],
             lab4[1],
             lab4[2],
-            self.SGPA
+            self.SGPA,
+            self.credits
         ]
 
     def clear(self):
@@ -217,11 +228,14 @@ class Student:
         self.theory_marks_sub3 = TheoryMarks()
         self.theory_marks_sub4 = TheoryMarks()
         self.theory_marks_sub5 = TheoryMarks()
+        self.theory_marks_sub6 = TheoryMarks()
+        self.theory_marks_sub7 = TheoryMarks()
         self.lab_marks_sub1 = LabMarks()
         self.lab_marks_sub2 = LabMarks()
         self.lab_marks_sub3 = LabMarks()
         self.lab_marks_sub4  = LabMarks()
         self.SGPA = 0
+        self.credits = 0
 
 
 class SmartParse:
@@ -246,10 +260,12 @@ class SmartParse:
             2: self.student.theory_marks_sub3,
             3: self.student.theory_marks_sub4,
             4: self.student.theory_marks_sub5,
-            5: self.student.lab_marks_sub1,
-            6: self.student.lab_marks_sub2,
-            7: self.student.lab_marks_sub3,
-            8: self.student.lab_marks_sub4,
+            5: self.student.theory_marks_sub6,
+            6: self.student.theory_marks_sub7,
+            7: self.student.lab_marks_sub1,
+            8: self.student.lab_marks_sub2,
+            9: self.student.lab_marks_sub3,
+            10: self.student.lab_marks_sub4,
         }  # the lines noted and the corresponding objects parameters.
 
 
@@ -273,10 +289,20 @@ class SmartParse:
                 total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
                         0
                     ]  # splitting the line after * in 9 parts.
-            order_dict[self.counter].set_marks(total_marks)
-            SmartParse.counter += 1
+            if (self.counter == 4):
+                if("310245A" in parse_line):
+                    order_dict[self.counter].set_marks(total_marks)
+                elif("310245B" in parse_line):
+                    order_dict[self.counter+1].set_marks(total_marks)
+                elif("310245C" in parse_line):
+                    order_dict[self.counter+2].set_marks(total_marks)
+                SmartParse.counter =   7
+            else:
+                order_dict[self.counter].set_marks(total_marks)
+                SmartParse.counter += 1
         elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]
+                self.student.credits = parse_line.split(":")[-1].strip()
                 SmartParse.csv_writer.writeStudent(
                     self.student
                 )  # writing the student to the csv file.
