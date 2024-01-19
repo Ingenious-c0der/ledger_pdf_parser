@@ -8,7 +8,7 @@ INPUT = "inputs/BE_2024.pdf"
 OUTPUT = "generated/BE_2024.csv"
 class TheoryMarks:
     def __init__(self):
-        self.marks = 0
+        self.marks = "NA"
 
     def set_marks(self, marks: str):
         if(marks == "FF"):
@@ -112,8 +112,13 @@ class CSVWriter:
                 "DESIGN & ANALYSIS OF ALGO",
                 "MACHINE LEARNING",
                 "BLOCKCHAIN TECHNOLOGY ",
-                "ELECTIVE - I",
-                "ELECTIVE - II",
+                "PERVASIVE COMPUTING",
+                "MULTIMEDIA TECHNIQUES",
+                "CYBER SEC & DIGITAL FORENSICS",
+                "OBJ. ORIENTED MODL. & DESIGN",
+                "INFORMATION RETRIEVAL",
+                "MOBILE COMPUTING",
+                "SOFTWARE TESTING & QUALITY ASSURANCE",
                 "LABORATORY",
                 "PRACTICE",
                 "III",
@@ -128,6 +133,11 @@ class CSVWriter:
         )
         self.csv_writer.writerow(
             [
+                " ",
+                " ",
+                " ",
+                " ",
+                " ",
                 " ",
                 " ",
                 " ",
@@ -163,6 +173,11 @@ class Student:
         self.theory_marks_sub3 = TheoryMarks()
         self.theory_marks_sub4 = TheoryMarks()
         self.theory_marks_sub5 = TheoryMarks()
+        self.theory_marks_sub6 = TheoryMarks()
+        self.theory_marks_sub7 = TheoryMarks()
+        self.theory_marks_sub8 = TheoryMarks()
+        self.theory_marks_sub9 = TheoryMarks()
+        self.theory_marks_sub10 = TheoryMarks()
         self.lab_marks_sub1 = LabMarks()
         self.lab_marks_sub2 = LabMarks()
         self.lab_marks_sub3 = LabMarks()
@@ -181,6 +196,11 @@ class Student:
             self.theory_marks_sub3.print(),
             self.theory_marks_sub4.print(),
             self.theory_marks_sub5.print(),
+            self.theory_marks_sub6.print(),
+            self.theory_marks_sub7.print(),
+            self.theory_marks_sub8.print(),
+            self.theory_marks_sub9.print(),
+            self.theory_marks_sub10.print(),
             lab1[0],
             lab1[1],
             lab1[2],
@@ -190,7 +210,7 @@ class Student:
             lab3[0],
             lab3[1],
             lab3[2],
-            self.SGPA
+            self.SGPA,
         ]
 
     def clear(self):
@@ -201,6 +221,11 @@ class Student:
         self.theory_marks_sub3 = TheoryMarks()
         self.theory_marks_sub4 = TheoryMarks()
         self.theory_marks_sub5 = TheoryMarks()
+        self.theory_marks_sub6 = TheoryMarks()
+        self.theory_marks_sub7 = TheoryMarks()
+        self.theory_marks_sub8 = TheoryMarks()
+        self.theory_marks_sub9 = TheoryMarks()
+        self.theory_marks_sub10 = TheoryMarks()
         self.lab_marks_sub1 = LabMarks()
         self.lab_marks_sub2 = LabMarks()
         self.lab_marks_sub3 = LabMarks()
@@ -242,11 +267,16 @@ class SmartParse:
             0: self.student.theory_marks_sub1,
             1: self.student.theory_marks_sub2,
             2: self.student.theory_marks_sub3,
-            3: self.student.theory_marks_sub4,
-            4: self.student.theory_marks_sub5,
-            5: self.student.lab_marks_sub1,
-            6: self.student.lab_marks_sub2,
-            7: self.student.lab_marks_sub3,
+            3: self.student.theory_marks_sub4, # 410244A
+            4: self.student.theory_marks_sub5, # 410244B
+            5: self.student.theory_marks_sub6, # 410244C
+            6: self.student.theory_marks_sub7, # 410244D
+            7: self.student.theory_marks_sub8, # 410245A
+            8: self.student.theory_marks_sub9, # 410245C
+            9: self.student.theory_marks_sub10, # 410245D
+            10: self.student.lab_marks_sub1,
+            11: self.student.lab_marks_sub2,
+            12: self.student.lab_marks_sub3,
         }  # the lines noted and the corresponding objects parameters.
 
         if self.counter == -1:
@@ -255,27 +285,46 @@ class SmartParse:
             SmartParse.counter += 1  # increment counter
             return
 
-        if self.counter < 5 and self.counter > -1:
-            print(parse_line)
+        if self.counter < 10 and self.counter > -1:
             if "*" not in parse_line:
-                print("here")
                 index = parse_line.find("/")
                 index-=3
                 con_str = parse_line[index:]
                 total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
                     0
                 ] # splitting the line after * in 9 parts.
-                print(total_marks)
             else: 
-                print("here2")
                 con_str = parse_line.split("*")[1]            
                 total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
                         0
                     ]  # splitting the line after * in 9 parts.
-
-            order_dict[self.counter].set_marks(total_marks)
-            SmartParse.counter += 1
-            print("counter incremented")
+            if (self.counter == 3):
+                if("410244A" in parse_line): 
+                    order_dict[self.counter].set_marks(total_marks)
+                   
+                elif("410244B" in parse_line):
+                    order_dict[self.counter+1].set_marks(total_marks)
+                   
+                elif("410244C" in parse_line):
+                    order_dict[self.counter+2].set_marks(total_marks)
+                    
+                elif("410244D" in parse_line):
+                    order_dict[self.counter+3].set_marks(total_marks)
+                SmartParse.counter = 7
+            elif(self.counter == 7):
+                if("410245A" in parse_line):
+                    order_dict[self.counter].set_marks(total_marks)
+                    
+                elif("410245C" in parse_line):
+                    order_dict[self.counter+1].set_marks(total_marks)
+                    
+                elif("410245D" in parse_line):
+                    order_dict[self.counter+2].set_marks(total_marks)
+                SmartParse.counter = 10
+            else:
+                order_dict[self.counter].set_marks(total_marks)
+                SmartParse.counter += 1
+           
         elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]
                 SmartParse.csv_writer.writeStudent(

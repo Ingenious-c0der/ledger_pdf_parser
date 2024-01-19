@@ -4,10 +4,11 @@ import pandas as pd
 import csv
 from pdfminer.high_level import extract_pages
 
-
+INPUT = "inputs/TE_2024.pdf"
+OUTPUT = "generated/te_2024.csv"
 class TheoryMarks:
     def __init__(self):
-        self.marks = 0
+        self.marks = "NA"
 
     def set_marks(self, marks: str):
         if(marks == "FF"):
@@ -227,7 +228,7 @@ class SmartParse:
     object_counter: int = 0
     counter: int = -1
     student: Student = Student()
-    csv_writer: CSVWriter = CSVWriter("generated/te_marks_2023.csv")
+    csv_writer: CSVWriter = CSVWriter(OUTPUT)
 
     def ordered_parse(self, parse_line: str):
         if (
@@ -260,15 +261,18 @@ class SmartParse:
             return
 
         if self.counter < 5 and self.counter > -1:
-            if("*" not in parse_line):
-                print("2 SEMS in one SEM detected,skipping line" )
-                SmartParse.counter += 1
-                return 
-            con_str = parse_line.split("*")[1]
-            total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[6].split("   ")[
-                0
-            ]  # splitting the line after * in 9 parts.
-
+            if "*" not in parse_line:
+                index = parse_line.find("/")
+                index-=3
+                con_str = parse_line[index:]
+                total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
+                    0
+                ] # splitting the line after * in 9 parts.
+            else: 
+                con_str = parse_line.split("*")[1]            
+                total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
+                        0
+                    ]  # splitting the line after * in 9 parts.
             order_dict[self.counter].set_marks(total_marks)
             SmartParse.counter += 1
         elif "SGPA" in parse_line:
@@ -281,20 +285,22 @@ class SmartParse:
                 print(f"{self.object_counter,self.student.full_name,self.student.SGPA} objects written")
                 SmartParse.student.clear()  # clearing the student object.
         else:
+            #labs
+            print(parse_line)
             if("*" not in parse_line):
-                print("2 SEMS in one SEM detected,skipping line = lab" )
-                SmartParse.counter += 1
-                return
-            con_str = parse_line.split("*")[1]
+                index = parse_line.find("---")
+                con_str = "   "+ parse_line[index:]
+            else: 
+                con_str = parse_line.split("*")[1]
             data = list(
-                map("".join, zip(*[iter(con_str)] * 9))
-            )  # splitting the line after * in 9 parts.
+                    map("".join, zip(*[iter(con_str)] * 9))
+                )  # splitting the line after * in 9 parts.
             order_dict[self.counter].set_data(data)
             SmartParse.counter += 1
           
 
 
-for page_layout in extract_pages("inputs/TE_2023.pdf"):
+for page_layout in extract_pages(INPUT):
     for element in page_layout:
         if isinstance(element, (LTTextBoxHorizontal)):
             if "PUNE" in element.get_text():
@@ -309,7 +315,7 @@ try:
         engine="xlsxwriter",
         engine_kwargs={"options": {"strings_to_numbers": True}},
     )
-    df = pd.read_csv("generated/te_marks_2023.csv")
+    df = pd.read_csv(OUTPUT)
     df.to_excel(xl ,index = False,na_rep = "NOF")
     xl.save()
 except Exception as e:
