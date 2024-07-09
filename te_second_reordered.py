@@ -149,7 +149,7 @@ class CSVWriter:
                 "TW",
                 "PR",
                 "TW",
-                "OR",
+                "PR",
                 "TW",
                 "OR",
                 "SGPA",
@@ -195,13 +195,13 @@ class Student:
             self.theory_marks_sub4.marks,
             self.theory_marks_sub5.marks,
             self.theory_marks_sub6.marks,
-            lab1[0],
-            lab2[0],
-            lab2[1],
             lab3[0],
-            lab3[1],
+            lab1[0],
+            lab1[1],
             lab4[0],
-            lab4[2],
+            lab4[1],
+            lab2[0],
+            lab2[2],
             self.SGPA,
         ]
 
@@ -237,19 +237,19 @@ class SmartParse:
             print("reached end")
             return
         order_dict = {
-            0: self.student.theory_marks_sub1,
-            1: self.student.theory_marks_sub2,
-            2: self.student.theory_marks_sub3,
-            3: self.student.theory_marks_sub4, #cloud computing
-            4: self.student.theory_marks_sub5, # Information Sec
-            5: self.student.theory_marks_sub6, # ARVR
-            6: self.student.lab_marks_sub1,
-            7: self.student.lab_marks_sub2,
+            0: self.student.theory_marks_sub1,# DSBDA
+            1: self.student.lab_marks_sub1, # dsbda lab
+            2: self.student.theory_marks_sub2, # web tech
+            3: self.student.lab_marks_sub2, # web tech lab
+            4: self.student.theory_marks_sub3, # AI
+            5: self.student.theory_marks_sub4, # cloud compute
+            6: self.student.theory_marks_sub5, # information sec
+            7: self.student.theory_marks_sub6, # ARVR
             8: self.student.lab_marks_sub3,
             9: self.student.lab_marks_sub4,
         }
         for text_line in marks_box:
-
+            print(self.counter)
             if (
             "CONFIDENTIAL" in text_line.get_text()
             or "COURSE" in text_line.get_text()
@@ -263,8 +263,8 @@ class SmartParse:
         ):  # avoiding unwanted lines.
                 continue
             parse_line = text_line.get_text()
-
-            if self.counter in [0,1,2,3]: #for theory marks
+            #0 -> 2 -> 4 -> 5
+            if self.counter in [0,2,4,5]: #for theory marks
                 if "*" not in parse_line:
                     index = parse_line.find("/")
                     index-=3
@@ -273,24 +273,24 @@ class SmartParse:
                         0
                     ] # splitting the line after * in 9 parts.
                     print(total_marks)
-                    if(self.counter == 3):
+                    if(self.counter == 5):
                         if "310254C" in parse_line:
                             order_dict[self.counter].set_marks(total_marks.strip())
                         elif "310254A" in parse_line:
                             order_dict[self.counter+1].set_marks(total_marks.strip())
                         else:
                             order_dict[self.counter+2].set_marks(total_marks.strip())
-                        self.counter= 6
+                        self.counter= 8
                     else:
                         order_dict[self.counter].set_marks(total_marks.strip())
-                        SmartParse.counter += 1
+                        self.counter += 1
                 else:
                     con_str = parse_line.split("*")[1]
                     total_marks = list(map("".join, zip(*[iter(con_str)] * 9)))[2].split("   ")[
                         0
                     ] # splitting the line after * in 9 parts.
 
-                    if(self.counter == 3):
+                    if(self.counter == 5):
                         sub_code = parse_line.split("*")[0].split(" ")[3]
                         if "C" in sub_code:
                             order_dict[self.counter].set_marks(total_marks.strip())
@@ -298,10 +298,10 @@ class SmartParse:
                             order_dict[self.counter+1].set_marks(total_marks.strip())
                         else:
                             order_dict[self.counter+2].set_marks(total_marks.strip())
-                        self.counter= 6
+                        self.counter= 8
                     else:
                         order_dict[self.counter].set_marks(total_marks.strip())
-                        SmartParse.counter += 1
+                        self.counter += 1
 
             elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]
