@@ -1,10 +1,12 @@
 from __future__ import annotations
-from pdfminer.layout import LTTextBoxHorizontal
+
+from pdfminer.layout import  LTTextBoxHorizontal
 import pandas as pd
 import csv
 from pdfminer.high_level import extract_pages
 
-
+INPUT = "inputs/SE_2024.pdf"
+OUTPUT = "generated/SE_2024.csv"
 class TheoryMarks:
     def __init__(self):
         self.marks = "NA"
@@ -226,7 +228,7 @@ class SmartParse:
     object_counter: int = 0
     counter: int = 0
     student: Student = Student()
-    csv_writer: CSVWriter = CSVWriter("SE_2023_marks_new.csv")
+    csv_writer: CSVWriter = CSVWriter(OUTPUT)
     def parse_boxes(self , name_box:LTTextBoxHorizontal,marks_box:LTTextBoxHorizontal):
         try:
             for name in name_box:            
@@ -310,7 +312,7 @@ def getLTBoxCount(obj) -> int:
         if(isinstance(element, LTTextBoxHorizontal)):
             count += 1
     return count 
-for page_layout in extract_pages("inputs/SE_2023_new.pdf"):
+for page_layout in extract_pages(INPUT):
   
     if getLTBoxCount(page_layout) == 5: 
         SmartParse().parse_boxes(page_layout._objs[1],page_layout._objs[2])
