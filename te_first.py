@@ -16,7 +16,12 @@ class TheoryMarks:
         elif "$" in marks:
             self.marks = marks.split("$")[0]
         else:
-            self.marks = marks
+            if("/" in marks):
+                self.marks = marks.split("/")[0]
+                if self.marks[0] == "0":
+                    self.marks = self.marks[1:] # remove the first 0
+            else:
+                self.marks = marks
 
     def print(self) -> int:
         return self.marks
@@ -295,14 +300,14 @@ class SmartParse:
                     ]  # splitting the line after * in 9 parts.
             if (self.counter == 4):
                 if("310245A" in parse_line):
-                    order_dict[self.counter].set_marks(total_marks)
+                    order_dict[self.counter].set_marks(total_marks.strip())
                 elif("310245B" in parse_line):
-                    order_dict[self.counter+1].set_marks(total_marks)
+                    order_dict[self.counter+1].set_marks(total_marks.strip())
                 elif("310245C" in parse_line):
-                    order_dict[self.counter+2].set_marks(total_marks)
+                    order_dict[self.counter+2].set_marks(total_marks.strip())
                 SmartParse.counter =   7
             else:
-                order_dict[self.counter].set_marks(total_marks)
+                order_dict[self.counter].set_marks(total_marks.strip())
                 SmartParse.counter += 1
         elif "SGPA" in parse_line:
                 self.student.SGPA = parse_line.split(":")[1].split(",")[0]

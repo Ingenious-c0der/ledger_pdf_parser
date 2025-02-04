@@ -19,7 +19,8 @@ class TheoryMarks:
         else:
             if("/" in marks):
                 self.marks = marks.split("/")[0]
-                self.marks = self.marks[1:] # remove the first 0
+                if self.marks[0] == "0":
+                    self.marks = self.marks[1:] # remove the first 0
             else:
                 #almost never occurs
                 self.marks = marks

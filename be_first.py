@@ -16,7 +16,13 @@ class TheoryMarks:
         elif "$" in marks:
             self.marks = marks.split("$")[0]
         else:
-            self.marks = marks
+            if("/" in marks):
+                self.marks = marks.split("/")[0]
+                print(self.marks[0])
+                if self.marks[0] == "0":
+                    self.marks = self.marks[1:] # remove the first 0
+            else:
+                self.marks = marks
 
     def print(self) -> int:
         return self.marks
@@ -308,29 +314,29 @@ class SmartParse:
                     ]  # splitting the line after * in 9 parts.
             if (self.counter == 3):
                 if("410244A" in parse_line): 
-                    order_dict[self.counter].set_marks(total_marks)
+                    order_dict[self.counter].set_marks(total_marks.strip())
                    
                 elif("410244B" in parse_line):
-                    order_dict[self.counter+1].set_marks(total_marks)
+                    order_dict[self.counter+1].set_marks(total_marks.strip())
                    
                 elif("410244C" in parse_line):
-                    order_dict[self.counter+2].set_marks(total_marks)
+                    order_dict[self.counter+2].set_marks(total_marks.strip())
                     
                 elif("410244D" in parse_line):
-                    order_dict[self.counter+3].set_marks(total_marks)
+                    order_dict[self.counter+3].set_marks(total_marks.strip())
                 SmartParse.counter = 7
             elif(self.counter == 7):
                 if("410245A" in parse_line):
-                    order_dict[self.counter].set_marks(total_marks)
+                    order_dict[self.counter].set_marks(total_marks.strip())
                     
                 elif("410245C" in parse_line):
-                    order_dict[self.counter+1].set_marks(total_marks)
+                    order_dict[self.counter+1].set_marks(total_marks.strip())
                     
                 elif("410245D" in parse_line):
-                    order_dict[self.counter+2].set_marks(total_marks)
+                    order_dict[self.counter+2].set_marks(total_marks.strip())
                 SmartParse.counter = 10
             else:
-                order_dict[self.counter].set_marks(total_marks)
+                order_dict[self.counter].set_marks(total_marks.strip())
                 SmartParse.counter += 1
            
         elif "SGPA" in parse_line:
