@@ -4,8 +4,8 @@ import pandas as pd
 import csv
 from pdfminer.high_level import extract_pages
 
-INPUT = "inputs/TE_2024.pdf"
-OUTPUT = "generated/te_2024.csv"
+INPUT = "inputs/TECOMP2019.pdf"
+OUTPUT = "generated/te_2025.csv"
 class TheoryMarks:
     def __init__(self):
         self.marks = "NA"
@@ -251,6 +251,7 @@ class SmartParse:
             or ( "SEM" in text_line.get_text() and "SEMINAR" not in text_line.get_text() )
             or "31026" in text_line.get_text()
             or "31025" in text_line.get_text()
+            or "31027" in text_line.get_text()
         ):  # avoiding unwanted lines.
             return
         order_dict = {
@@ -272,7 +273,10 @@ class SmartParse:
 
         if self.counter == -1:
             self.student.full_name = parse_line.split(":")[2].split("    ")[0]  # name
-            self.student.seat_no = parse_line.split(":")[1].split(" ")[1]  # seat no
+            seat_no = parse_line.split(":")[1].split(" ")[1]  # seat no
+            if seat_no.endswith("NAME"):
+                seat_no = seat_no[:-4]
+            self.student.seat_no = seat_no
             SmartParse.counter += 1  # increment counter
             return
 
@@ -335,14 +339,14 @@ for page_layout in extract_pages(INPUT):
                 for text_line in element:
                     SmartParse().ordered_parse(text_line.get_text())
 
-try:
-    xl = pd.ExcelWriter(
-        "te_2023_marks.xlsx",
-        engine="xlsxwriter",
-        engine_kwargs={"options": {"strings_to_numbers": True}},
-    )
-    df = pd.read_csv(OUTPUT)
-    df.to_excel(xl ,index = False,na_rep = "NOF")
-    xl.save()
-except Exception as e:
-    print(e)
+# try:
+#     xl = pd.ExcelWriter(
+#         "te_2023_marks.xlsx",
+#         engine="xlsxwriter",
+#         engine_kwargs={"options": {"strings_to_numbers": True}},
+#     )
+#     df = pd.read_csv(OUTPUT)
+#     df.to_excel(xl ,index = False,na_rep = "NOF")
+#     xl.save()
+# except Exception as e:
+#     print(e)

@@ -4,8 +4,8 @@ import pandas as pd
 import csv
 from pdfminer.high_level import extract_pages
 
-INPUT = "inputs/BE_2024.pdf"
-OUTPUT = "generated/BE_2024.csv"
+INPUT = "inputs/BECOMP2019.pdf"
+OUTPUT = "generated/be_2025.csv"
 class TheoryMarks:
     def __init__(self):
         self.marks = "NA"
@@ -262,6 +262,7 @@ class SmartParse:
             or "410256" in text_line.get_text()
             or "410257" in text_line.get_text()
             or "FE SGPA" in text_line.get_text()
+            or "SE SGPA" in text_line.get_text()
             or "TOTAL GRADE" in text_line.get_text()
         ):  # avoiding unwanted lines.
             return
@@ -284,12 +285,16 @@ class SmartParse:
 
         if self.counter == -1:
             self.student.full_name = parse_line.split(":")[2].split("    ")[0]  # name
-            self.student.seat_no = parse_line.split(":")[1].split(" ")[1]  # seat no
+            seat_no = parse_line.split(":")[1].split(" ")[1]  # seat no
+            if seat_no.endswith("NAME"):
+                seat_no = seat_no[:-4]
+            self.student.seat_no = seat_no
             SmartParse.counter += 1  # increment counter
             return
 
         if self.counter < 10 and self.counter > -1:
             if "*" not in parse_line:
+                print(parse_line)
                 index = parse_line.find("/")
                 index-=3
                 con_str = parse_line[index:]
@@ -338,6 +343,7 @@ class SmartParse:
                 )  # writing the student to the csv file.
                 SmartParse.counter = -1  # resetting the counter.
                 SmartParse.object_counter += 1  # increasing the object counter.
+                print(self.student.full_name)
                 print(f"{self.object_counter} objects written")
                 SmartParse.student.clear()  # clearing the student object.
         else:
@@ -363,14 +369,14 @@ for page_layout in extract_pages(INPUT):
                 for text_line in element:
                     SmartParse().ordered_parse(text_line.get_text())
 
-try:
-    xl = pd.ExcelWriter(
-        "be_marks.xlsx",
-        engine="xlsxwriter",
-        engine_kwargs={"options": {"strings_to_numbers": True}},
-    )
-    df = pd.read_csv(OUTPUT)
-    df.to_excel(xl ,index = False,na_rep = "NOF")
-    xl.save()
-except Exception as e:
-    print(e)
+# try:
+#     xl = pd.ExcelWriter(
+#         "be_marks.xlsx",
+#         engine="xlsxwriter",
+#         engine_kwargs={"options": {"strings_to_numbers": True}},
+#     )
+#     df = pd.read_csv(OUTPUT)
+#     df.to_excel(xl ,index = False,na_rep = "NOF")
+#     xl.save()
+# except Exception as e:
+#     print(e)
